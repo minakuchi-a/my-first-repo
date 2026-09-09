@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>やること帳</title>
+<style>
+  :root {
+    --paper: #FBF8F2;
+    --ink: #2B2A28;
+    --ink-soft: #6B6862;
+    --line: #DCD5C6;
+    --accent: #3D5A45;
+    --accent-soft: #C9D6C4;
+    --done: #A6A199;
+  }
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: var(--paper);
+    background-image:
+      repeating-linear-gradient(
+        transparent,
+        transparent 38px,
+        var(--line) 39px
+      );
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", serif;
+    color: var(--ink);
+    display: flex;
+    justify-content: center;
+    padding: 48px 20px;
+  }
+
+  .sheet {
+    width: 100%;
+    max-width: 520px;
+  }
+
+  header {
+    margin-bottom: 28px;
+    padding-bottom: 18px;
+    border-bottom: 2px solid var(--ink);
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0 0 6px;
+    letter-spacing: 0.02em;
+  }
+
+  .date {
+    font-family: -apple-system, "Hiragino Sans", sans-serif;
+    font-size: 13px;
+    color: var(--ink-soft);
+  }
+
+  .entry-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 24px;
+  }
+
+  .entry-row input[type="text"] {
+    flex: 1;
+    font-family: inherit;
+    font-size: 16px;
+    padding: 10px 4px;
+    border: none;
+    border-bottom: 1px solid var(--ink-soft);
+    background: transparent;
+    color: var(--ink);
+    outline: none;
+  }
+
+  .entry-row input[type="text"]:focus {
+    border-bottom: 2px solid var(--accent);
+  }
+
+  .entry-row input[type="text"]::placeholder {
+    color: #A9A296;
+  }
+
+  .entry-row button {
+    font-family: -apple-system, "Hiragino Sans", sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 0 18px;
+    border: 1px solid var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+    cursor: pointer;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .entry-row button:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  ul.list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  li.item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 9px 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  li.item .check {
+    flex-shrink: 0;
+    width: 20px;
+    height: 20px;
+    margin-top: 2px;
+    border: 1.5px solid var(--ink-soft);
+    border-radius: 3px;
+    cursor: pointer;
+    position: relative;
+    background: transparent;
+  }
+
+  li.item.done .check {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  li.item.done .check::after {
+    content: "";
+    position: absolute;
+    left: 6px;
+    top: 2px;
+    width: 5px;
+    height: 10px;
+    border-right: 2px solid var(--paper);
+    border-bottom: 2px solid var(--paper);
+    transform: rotate(40deg);
+  }
+
+  li.item .text {
+    flex: 1;
+    font-size: 16px;
+    line-height: 1.5;
+    padding-top: 1px;
+    word-break: break-word;
+  }
+
+  li.item.done .text {
+    color: var(--done);
+    text-decoration: line-through;
+    text-decoration-color: var(--done);
+  }
+
+  li.item .remove {
+    flex-shrink: 0;
+    font-family: -apple-system, "Hiragino Sans", sans-serif;
+    font-size: 13px;
+    color: var(--ink-soft);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px 4px;
+    opacity: 0;
+    transition: opacity 0.15s ease;
+  }
+
+  li.item:hover .remove {
+    opacity: 1;
+  }
+
+  li.item .remove:hover {
+    color: #B0453D;
+  }
+
+  .empty {
+    padding: 40px 0;
+    text-align: center;
+    color: var(--ink-soft);
+    font-size: 14px;
+    font-family: -apple-system, "Hiragino Sans", sans-serif;
+  }
+
+  footer {
+    margin-top: 20px;
+    font-family: -apple-system, "Hiragino Sans", sans-serif;
+    font-size: 13px;
+    color: var(--ink-soft);
+    display: flex;
+    justify-content: space-between;
+  }
+
+  footer button {
+    background: none;
+    border: none;
+    color: var(--ink-soft);
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+    text-decoration: underline;
+  }
+
+  footer button:hover {
+    color: var(--ink);
+  }
+</style>
+</head>
+<body>
+  <div class="sheet">
+    <header>
+      <h1>やること帳</h1>
+      <div class="date" id="today"></div>
+    </header>
+
+    <div class="entry-row">
+      <input type="text" id="newItem" placeholder="やることを書く…" autocomplete="off">
+      <button id="addBtn">追加</button>
+    </div>
+
+    <ul class="list" id="list"></ul>
+    <div class="empty" id="emptyMsg" style="display:none;">まだ何もありません</div>
+
+    <footer>
+      <span id="count">0 件中 0 件完了</span>
+      <button id="clearDone">完了済みを削除</button>
+    </footer>
+  </div>
+
+<script>
+  const STORAGE_KEY = "todo-items";
+  let items = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+  const listEl = document.getElementById("list");
+  const emptyMsg = document.getElementById("emptyMsg");
+  const countEl = document.getElementById("count");
+  const input = document.getElementById("newItem");
+  const addBtn = document.getElementById("addBtn");
+  const clearDoneBtn = document.getElementById("clearDone");
+
+  const todayEl = document.getElementById("today");
+  todayEl.textContent = new Date().toLocaleDateString("ja-JP", {
+    year: "numeric", month: "long", day: "numeric", weekday: "long"
+  });
+
+  function save() {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+  }
+
+  function render() {
+    listEl.innerHTML = "";
+    if (items.length === 0) {
+      emptyMsg.style.display = "block";
+    } else {
+      emptyMsg.style.display = "none";
+      items.forEach((item, i) => {
+        const li = document.createElement("li");
+        li.className = "item" + (item.done ? " done" : "");
+
+        const check = document.createElement("div");
+        check.className = "check";
+        check.onclick = () => { items[i].done = !items[i].done; save(); render(); };
+
+        const text = document.createElement("div");
+        text.className = "text";
+        text.textContent = item.text;
+
+        const remove = document.createElement("button");
+        remove.className = "remove";
+        remove.textContent = "削除";
+        remove.onclick = () => { items.splice(i, 1); save(); render(); };
+
+        li.appendChild(check);
+        li.appendChild(text);
+        li.appendChild(remove);
+        listEl.appendChild(li);
+      });
+    }
+    const doneCount = items.filter(i => i.done).length;
+    countEl.textContent = `${items.length} 件中 ${doneCount} 件完了`;
+  }
+
+  function addItem() {
+    const val = input.value.trim();
+    if (!val) return;
+    items.push({ text: val, done: false });
+    input.value = "";
+    save();
+    render();
+  }
+
+  addBtn.onclick = addItem;
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") addItem();
+  });
+  clearDoneBtn.onclick = () => {
+    items = items.filter(i => !i.done);
+    save();
+    render();
+  };
+
+  render();
+</script>
+</body>
+</html>
